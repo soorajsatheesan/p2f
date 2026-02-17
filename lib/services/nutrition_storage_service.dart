@@ -16,7 +16,7 @@ class NutritionStorageService {
 
     _db = await openDatabase(
       path,
-      version: 1,
+      version: 2,
       onCreate: (db, version) async {
         await db.execute('''
           CREATE TABLE $_tableName (
@@ -24,6 +24,7 @@ class NutritionStorageService {
             image_path TEXT NOT NULL,
             description TEXT NOT NULL,
             created_at TEXT NOT NULL,
+            meal_name TEXT NOT NULL,
             calories INTEGER NOT NULL,
             protein_g REAL NOT NULL,
             carbs_g REAL NOT NULL,
@@ -32,6 +33,13 @@ class NutritionStorageService {
             summary TEXT NOT NULL
           )
         ''');
+      },
+      onUpgrade: (db, oldVersion, newVersion) async {
+        if (oldVersion < 2) {
+          await db.execute(
+            "ALTER TABLE $_tableName ADD COLUMN meal_name TEXT NOT NULL DEFAULT 'Meal'",
+          );
+        }
       },
     );
 
@@ -48,5 +56,10 @@ class NutritionStorageService {
     final db = await _database();
     final rows = await db.query(_tableName, orderBy: 'created_at DESC');
     return rows.map(NutritionEntry.fromDbMap).toList();
+  }
+
+  Future<void> deleteEntry(int id) async {
+    final db = await _database();
+    await db.delete(_tableName, where: 'id = ?', whereArgs: [id]);
   }
 }

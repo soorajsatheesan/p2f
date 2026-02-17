@@ -40,7 +40,7 @@ class AppTheme {
       useMaterial3: true,
       brightness: Brightness.light,
       colorScheme: scheme,
-      scaffoldBackgroundColor: AppColors.background,
+      scaffoldBackgroundColor: Colors.transparent,
       fontFamilyFallback: AppTypography.fontFamily,
 
       // AppBar theme
@@ -315,7 +315,7 @@ class AppTheme {
     return light.copyWith(
       brightness: Brightness.dark,
       colorScheme: scheme,
-      scaffoldBackgroundColor: AppColors.gray900,
+      scaffoldBackgroundColor: Colors.transparent,
 
       appBarTheme: AppBarTheme(
         backgroundColor: AppColors.gray900,

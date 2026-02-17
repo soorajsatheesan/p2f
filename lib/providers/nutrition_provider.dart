@@ -40,6 +40,39 @@ class NutritionState {
   final bool isAnalyzing;
   final String? errorMessage;
 
+  int get todayTotalCalories {
+    final now = DateTime.now();
+    return entries
+        .where(
+          (entry) =>
+              entry.createdAt.year == now.year &&
+              entry.createdAt.month == now.month &&
+              entry.createdAt.day == now.day,
+        )
+        .fold<int>(0, (sum, entry) => sum + entry.analysis.calories);
+  }
+
+  double get todayProteinG =>
+      _todayMacroTotal((entry) => entry.analysis.proteinG);
+
+  double get todayCarbsG => _todayMacroTotal((entry) => entry.analysis.carbsG);
+
+  double get todayFatsG => _todayMacroTotal((entry) => entry.analysis.fatsG);
+
+  double get todayFiberG => _todayMacroTotal((entry) => entry.analysis.fiberG);
+
+  double _todayMacroTotal(double Function(NutritionEntry entry) pick) {
+    final now = DateTime.now();
+    return entries
+        .where(
+          (entry) =>
+              entry.createdAt.year == now.year &&
+              entry.createdAt.month == now.month &&
+              entry.createdAt.day == now.day,
+        )
+        .fold<double>(0, (sum, entry) => sum + pick(entry));
+  }
+
   NutritionState copyWith({
     List<NutritionEntry>? entries,
     NutritionAnalysis? lastAnalysis,
@@ -93,7 +126,7 @@ class NutritionNotifier extends StateNotifier<NutritionState> {
     }
   }
 
-  Future<void> analyzeAndSave({
+  Future<NutritionEntry?> analyzeAndSave({
     required String imagePath,
     required String description,
   }) async {
@@ -131,11 +164,23 @@ class NutritionNotifier extends StateNotifier<NutritionState> {
         lastAnalysis: analysis,
         isAnalyzing: false,
       );
+      return stored;
     } catch (e) {
       state = state.copyWith(
         isAnalyzing: false,
         errorMessage: e.toString().replaceFirst('Exception: ', ''),
       );
+      return null;
+    }
+  }
+
+  Future<void> deleteEntry(int id) async {
+    try {
+      await _storageService.deleteEntry(id);
+      final updatedEntries = state.entries.where((e) => e.id != id).toList();
+      state = state.copyWith(entries: updatedEntries);
+    } catch (_) {
+      state = state.copyWith(errorMessage: 'Failed to delete meal entry.');
     }
   }
 

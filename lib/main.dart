@@ -21,6 +21,14 @@ class MyApp extends StatelessWidget {
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
       themeMode: ThemeMode.light,
+      builder: (context, child) {
+        return Stack(
+          children: [
+            const Positioned.fill(child: AppGradientBackground()),
+            child ?? const SizedBox.shrink(),
+          ],
+        );
+      },
       home: const AuthWrapper(),
     );
   }
@@ -85,10 +93,9 @@ class _LoadingScreen extends StatelessWidget {
     final accent = isDark ? const Color(0xFF9EBEFF) : AppColors.primary;
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF101726) : AppColors.background,
+      backgroundColor: Colors.transparent,
       body: Stack(
         children: [
-          const Positioned.fill(child: AppGradientBackground()),
           Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,

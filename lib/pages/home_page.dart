@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:p2f/models/user_profile.dart';
 import 'package:p2f/pages/home/sections/home_section.dart';
+import 'package:p2f/pages/home/sections/ai_assistant_section.dart';
 import 'package:p2f/pages/home/sections/nutrition_section.dart';
 import 'package:p2f/pages/home/sections/profile_section.dart';
-import 'package:p2f/pages/home/widgets/coming_soon_panel.dart';
+import 'package:p2f/pages/nutrition_capture_page.dart';
 import 'package:p2f/providers/login_provider.dart';
 import 'package:p2f/providers/user_profile_provider.dart';
 import 'package:p2f/theme/theme.dart';
@@ -47,7 +48,41 @@ class _HomePageState extends ConsumerState<HomePage>
     final profileNotifier = ref.read(userProfileProvider.notifier);
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF101726) : AppColors.background,
+      backgroundColor: Colors.transparent,
+      floatingActionButton: DecoratedBox(
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFF3A74E0), Color(0xFFE88AB7)],
+          ),
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x553A74E0),
+              blurRadius: 18,
+              offset: Offset(0, 8),
+            ),
+          ],
+        ),
+        child: FloatingActionButton.extended(
+          onPressed: () async {
+            final result = await Navigator.of(context).push<bool>(
+              MaterialPageRoute(builder: (_) => const NutritionCapturePage()),
+            );
+            if (result == true && mounted) {
+              setState(() {
+                _selectedNavIndex = 1;
+              });
+            }
+          },
+          elevation: 0,
+          backgroundColor: Colors.transparent,
+          foregroundColor: Colors.white,
+          icon: const Icon(Icons.add_rounded),
+          label: const Text('Add Meal'),
+        ),
+      ),
       bottomNavigationBar: _BottomNavBar(
         selectedIndex: _selectedNavIndex,
         onSelected: (index) {
@@ -58,7 +93,6 @@ class _HomePageState extends ConsumerState<HomePage>
       ),
       body: Stack(
         children: [
-          const Positioned.fill(child: AppGradientBackground()),
           SafeArea(
             child: SingleChildScrollView(
               padding: EdgeInsets.fromLTRB(
@@ -75,10 +109,7 @@ class _HomePageState extends ConsumerState<HomePage>
                     animation: _animationController,
                     itemDelay: 0.1,
                     children: [
-                      _TopBar(
-                        accent: accent,
-                        onLogout: () => _confirmLogout(context),
-                      ),
+                      _TopBar(accent: accent),
                       const SizedBox(height: 16),
                       if (profileState.isLoading)
                         const _LoadingCard()
@@ -87,6 +118,7 @@ class _HomePageState extends ConsumerState<HomePage>
                           profile: profileState.profile,
                           isSaving: profileState.isSaving,
                           onSave: profileNotifier.saveProfile,
+                          onLogout: () => _confirmLogout(context),
                         ),
                     ],
                   ),
@@ -103,6 +135,7 @@ class _HomePageState extends ConsumerState<HomePage>
     required UserProfile? profile,
     required bool isSaving,
     required ValueChanged<UserProfile> onSave,
+    required VoidCallback onLogout,
   }) {
     switch (_selectedNavIndex) {
       case 0:
@@ -119,12 +152,13 @@ class _HomePageState extends ConsumerState<HomePage>
       case 1:
         return const NutritionSection();
       case 2:
-        return const ComingSoonPanel(title: 'AI Assistant - Joe');
+        return AiAssistantSection(profile: profile);
       case 3:
         return ProfileSection(
           profile: profile,
           isSaving: isSaving,
           onSave: onSave,
+          onLogout: onLogout,
         );
       default:
         return const SizedBox.shrink();
@@ -265,10 +299,9 @@ class _BottomNavBar extends StatelessWidget {
 }
 
 class _TopBar extends StatelessWidget {
-  const _TopBar({required this.accent, required this.onLogout});
+  const _TopBar({required this.accent});
 
   final Color accent;
-  final VoidCallback onLogout;
 
   @override
   Widget build(BuildContext context) {
@@ -310,20 +343,6 @@ class _TopBar extends StatelessWidget {
                 ),
               ),
             ],
-          ),
-        ),
-        const Spacer(),
-        IconButton.filledTonal(
-          onPressed: onLogout,
-          icon: const Icon(Icons.logout_rounded),
-          style: IconButton.styleFrom(
-            backgroundColor: isDark
-                ? const Color(0xFF1A2438)
-                : const Color(0xFFF8FAFF),
-            foregroundColor: isDark ? AppColors.gray300 : AppColors.gray700,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(14),
-            ),
           ),
         ),
       ],

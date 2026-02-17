@@ -147,6 +147,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
     });
 
     return Scaffold(
+      backgroundColor: Colors.transparent,
       body: Stack(
         children: [
           const _LoginBackdrop(),

@@ -9,12 +9,14 @@ class ProfileSection extends StatelessWidget {
     required this.profile,
     required this.isSaving,
     required this.onSave,
+    required this.onLogout,
     super.key,
   });
 
   final UserProfile? profile;
   final bool isSaving;
   final ValueChanged<UserProfile> onSave;
+  final VoidCallback onLogout;
 
   @override
   Widget build(BuildContext context) {
@@ -46,6 +48,12 @@ class ProfileSection extends StatelessWidget {
             isSaving: isSaving,
             submitLabel: profile == null ? 'Save profile' : 'Update profile',
             onSubmit: onSave,
+          ),
+          const SizedBox(height: 14),
+          ZenSecondaryButton(
+            label: 'Log out',
+            icon: Icons.logout_rounded,
+            onPressed: onLogout,
           ),
         ],
       ),

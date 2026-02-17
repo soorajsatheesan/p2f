@@ -21,6 +21,7 @@ You are a nutrition analysis assistant.
 Analyze the meal image and user description.
 Return STRICT JSON only with this schema:
 {
+  "meal_name": string,
   "calories": int,
   "protein_g": number,
   "carbs_g": number,
@@ -81,7 +82,21 @@ User description: "$description"
       throw Exception('Empty analysis from Gemini.');
     }
 
-    final parsed = jsonDecode(text) as Map<String, dynamic>;
+    final normalized = _extractJsonObject(text);
+    final parsed = jsonDecode(normalized) as Map<String, dynamic>;
     return NutritionAnalysis.fromJson(parsed);
+  }
+
+  String _extractJsonObject(String raw) {
+    final trimmed = raw.trim();
+    if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+      return trimmed;
+    }
+    final start = trimmed.indexOf('{');
+    final end = trimmed.lastIndexOf('}');
+    if (start >= 0 && end > start) {
+      return trimmed.substring(start, end + 1);
+    }
+    return trimmed;
   }
 }

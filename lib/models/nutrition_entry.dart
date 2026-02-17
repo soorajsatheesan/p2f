@@ -37,6 +37,7 @@ class NutritionEntry {
       'image_path': imagePath,
       'description': description,
       'created_at': createdAt.toIso8601String(),
+      'meal_name': analysis.mealName,
       'calories': analysis.calories,
       'protein_g': analysis.proteinG,
       'carbs_g': analysis.carbsG,
@@ -53,6 +54,9 @@ class NutritionEntry {
       description: map['description'] as String,
       createdAt: DateTime.parse(map['created_at'] as String),
       analysis: NutritionAnalysis(
+        mealName: (map['meal_name'] as String?)?.trim().isNotEmpty == true
+            ? (map['meal_name'] as String)
+            : 'Meal',
         calories: (map['calories'] as num).round(),
         proteinG: (map['protein_g'] as num).toDouble(),
         carbsG: (map['carbs_g'] as num).toDouble(),
