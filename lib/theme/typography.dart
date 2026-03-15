@@ -1,286 +1,280 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'colors.dart';
 
+/// Typography system using Space Grotesk (headings) and Inter (body).
+/// Maps to the design-theme.md type scale.
 class AppTypography {
   AppTypography._();
 
-  // Font families - editorial leaning fallback stack
-  static const List<String> fontFamily = [
-    'Avenir Next',
-    'Futura',
-    'Baskerville',
-    'Iowan Old Style',
-    'Palatino',
-    'Trebuchet MS',
-    'Verdana',
-    'Segoe UI',
+  static const String bodyFont = 'Inter';
+  static const List<String> bodyFallback = <String>[
+    'Inter',
+    'Roboto',
+    'Helvetica',
+    'Arial',
     'sans-serif',
   ];
+  static const String headingFont = 'Space Grotesk';
 
-  // Font weights - modern naming
+  // Font weights
   static const FontWeight wLight = FontWeight.w300;
   static const FontWeight wRegular = FontWeight.w400;
   static const FontWeight wMedium = FontWeight.w500;
   static const FontWeight wSemibold = FontWeight.w600;
   static const FontWeight wBold = FontWeight.w700;
 
-  // Display styles - Large headings with tight letter spacing
-  static TextStyle get displayLarge => const TextStyle(
-    fontFamilyFallback: fontFamily,
-    fontSize: 57,
-    fontWeight: wBold,
-    letterSpacing: -1.5,
-    height: 1.1,
-    color: AppColors.textPrimary,
-  );
+  // ── Helper constructors ──
 
-  static TextStyle get displayMedium => const TextStyle(
-    fontFamilyFallback: fontFamily,
-    fontSize: 45,
-    fontWeight: wSemibold,
-    letterSpacing: -1.0,
-    height: 1.15,
-    color: AppColors.textPrimary,
-  );
+  static TextStyle _heading({
+    double fontSize = 16,
+    FontWeight fontWeight = FontWeight.w700,
+    double letterSpacing = 0,
+    double height = 1.1,
+    Color color = AppColors.foreground,
+  }) {
+    return GoogleFonts.spaceGrotesk(
+      fontSize: fontSize,
+      fontWeight: fontWeight,
+      letterSpacing: letterSpacing,
+      height: height,
+      color: color,
+    );
+  }
 
-  static TextStyle get displaySmall => const TextStyle(
-    fontFamilyFallback: fontFamily,
-    fontSize: 36,
-    fontWeight: wSemibold,
-    letterSpacing: -0.8,
-    height: 1.2,
-    color: AppColors.textPrimary,
-  );
+  static TextStyle _body({
+    double fontSize = 15,
+    FontWeight fontWeight = FontWeight.w400,
+    double letterSpacing = 0,
+    double height = 1.7,
+    Color color = AppColors.muted,
+  }) {
+    return GoogleFonts.inter(
+      fontSize: fontSize,
+      fontWeight: fontWeight,
+      letterSpacing: letterSpacing,
+      height: height,
+      color: color,
+    );
+  }
 
-  // Headline styles - Section headers
-  static TextStyle get headlineLarge => const TextStyle(
-    fontFamilyFallback: fontFamily,
-    fontSize: 32,
-    fontWeight: wSemibold,
-    letterSpacing: -0.6,
-    height: 1.25,
-    color: AppColors.textPrimary,
-  );
+  // ── Heading styles (Space Grotesk) ──
 
-  static TextStyle get headlineMedium => const TextStyle(
-    fontFamilyFallback: fontFamily,
-    fontSize: 28,
-    fontWeight: wSemibold,
-    letterSpacing: -0.5,
-    height: 1.3,
-    color: AppColors.textPrimary,
-  );
-
-  static TextStyle get headlineSmall => const TextStyle(
-    fontFamilyFallback: fontFamily,
-    fontSize: 24,
-    fontWeight: wSemibold,
-    letterSpacing: -0.4,
-    height: 1.3,
-    color: AppColors.textPrimary,
-  );
-
-  // Title styles - Card titles, app bar
-  static TextStyle get titleLarge => const TextStyle(
-    fontFamilyFallback: fontFamily,
-    fontSize: 22,
-    fontWeight: wSemibold,
-    letterSpacing: -0.3,
-    height: 1.35,
-    color: AppColors.textPrimary,
-  );
-
-  static TextStyle get titleMedium => const TextStyle(
-    fontFamilyFallback: fontFamily,
-    fontSize: 18,
-    fontWeight: wMedium,
-    letterSpacing: -0.2,
-    height: 1.4,
-    color: AppColors.textPrimary,
-  );
-
-  static TextStyle get titleSmall => const TextStyle(
-    fontFamilyFallback: fontFamily,
-    fontSize: 16,
-    fontWeight: wMedium,
-    letterSpacing: -0.1,
-    height: 1.4,
-    color: AppColors.textPrimary,
-  );
-
-  // Body styles - Main content
-  static TextStyle get bodyLarge => const TextStyle(
-    fontFamilyFallback: fontFamily,
-    fontSize: 16,
-    fontWeight: wRegular,
-    letterSpacing: 0,
-    height: 1.6,
-    color: AppColors.textPrimary,
-  );
-
-  static TextStyle get bodyMedium => const TextStyle(
-    fontFamilyFallback: fontFamily,
-    fontSize: 14,
-    fontWeight: wRegular,
-    letterSpacing: 0,
-    height: 1.6,
-    color: AppColors.textPrimary,
-  );
-
-  static TextStyle get bodySmall => const TextStyle(
-    fontFamilyFallback: fontFamily,
-    fontSize: 12,
-    fontWeight: wRegular,
-    letterSpacing: 0,
-    height: 1.5,
-    color: AppColors.textSecondary,
-  );
-
-  // Label styles - UI elements, buttons
-  static TextStyle get labelLarge => const TextStyle(
-    fontFamilyFallback: fontFamily,
-    fontSize: 14,
-    fontWeight: wSemibold,
-    letterSpacing: 0,
-    height: 1.4,
-    color: AppColors.textPrimary,
-  );
-
-  static TextStyle get labelMedium => const TextStyle(
-    fontFamilyFallback: fontFamily,
-    fontSize: 12,
-    fontWeight: wMedium,
-    letterSpacing: 0.1,
-    height: 1.4,
-    color: AppColors.textSecondary,
-  );
-
-  static TextStyle get labelSmall => const TextStyle(
-    fontFamilyFallback: fontFamily,
-    fontSize: 11,
-    fontWeight: wMedium,
-    letterSpacing: 0.2,
-    height: 1.4,
-    color: AppColors.textTertiary,
-  );
-
-  // Button text styles
-  static TextStyle get buttonLarge => const TextStyle(
-    fontFamilyFallback: fontFamily,
-    fontSize: 16,
-    fontWeight: wSemibold,
-    letterSpacing: 0,
-    height: 1.2,
-    color: AppColors.textInverse,
-  );
-
-  static TextStyle get buttonMedium => const TextStyle(
-    fontFamilyFallback: fontFamily,
-    fontSize: 14,
-    fontWeight: wSemibold,
-    letterSpacing: 0,
-    height: 1.2,
-    color: AppColors.textInverse,
-  );
-
-  // Overline and caption
-  static TextStyle get overline => const TextStyle(
-    fontFamilyFallback: fontFamily,
-    fontSize: 10,
-    fontWeight: wSemibold,
-    letterSpacing: 1.5,
-    height: 1.4,
-    color: AppColors.textTertiary,
-  );
-
-  static TextStyle get caption => const TextStyle(
-    fontFamilyFallback: fontFamily,
-    fontSize: 12,
-    fontWeight: wRegular,
-    letterSpacing: 0.2,
-    height: 1.4,
-    color: AppColors.textSecondary,
-  );
-
-  // Modern chip/tag style
-  static TextStyle get chip => const TextStyle(
-    fontFamilyFallback: fontFamily,
-    fontSize: 12,
-    fontWeight: wSemibold,
-    letterSpacing: 0.2,
-    height: 1.3,
-    color: AppColors.textPrimary,
-  );
-
-  // Hero/Display text for special emphasis
-  static TextStyle get hero => const TextStyle(
-    fontFamilyFallback: fontFamily,
+  /// Hero title — largest display text
+  static TextStyle get hero => _heading(
     fontSize: 64,
     fontWeight: wBold,
-    letterSpacing: -2,
-    height: 1.0,
-    color: AppColors.textPrimary,
+    letterSpacing: -2.56, // -0.04em
+    height: 0.95,
   );
 
-  // Fitness app specific styles
-  static TextStyle get statValue => const TextStyle(
-    fontFamilyFallback: fontFamily,
-    fontSize: 40,
+  /// Display large — section titles
+  static TextStyle get displayLarge => _heading(
+    fontSize: 56,
     fontWeight: wBold,
-    letterSpacing: -1,
-    height: 1.1,
-    color: AppColors.textPrimary,
+    letterSpacing: -1.68, // -0.03em
   );
 
-  static TextStyle get statLabel => const TextStyle(
-    fontFamilyFallback: fontFamily,
+  /// Display medium
+  static TextStyle get displayMedium => _heading(
+    fontSize: 45,
+    fontWeight: wBold,
+    letterSpacing: -1.35,
+  );
+
+  /// Display small
+  static TextStyle get displaySmall => _heading(
+    fontSize: 36,
+    fontWeight: wBold,
+    letterSpacing: -1.08,
+  );
+
+  /// Headline large
+  static TextStyle get headlineLarge => _heading(
+    fontSize: 32,
+    fontWeight: wBold,
+    letterSpacing: -0.96,
+  );
+
+  /// Headline medium
+  static TextStyle get headlineMedium => _heading(
+    fontSize: 28,
+    fontWeight: wBold,
+    letterSpacing: -0.84,
+  );
+
+  /// Headline small — feature headings
+  static TextStyle get headlineSmall => _heading(
+    fontSize: 21,
+    fontWeight: wSemibold,
+    letterSpacing: -0.21,
+    height: 1.2,
+  );
+
+  /// Card value / stat number
+  static TextStyle get statValue => _heading(
+    fontSize: 48,
+    fontWeight: wBold,
+    letterSpacing: -1.44,
+    height: 1.0,
+  );
+
+  /// Metric large
+  static TextStyle get metricLarge => _heading(
+    fontSize: 72,
+    fontWeight: wBold,
+    letterSpacing: -2.16,
+    height: 1.0,
+  );
+
+  /// Logo text
+  static TextStyle get logo => _heading(
+    fontSize: 24,
+    fontWeight: wBold,
+    letterSpacing: -0.48,
+    height: 1.0,
+  );
+
+  // ── Title styles (Space Grotesk) ──
+
+  static TextStyle get titleLarge => _heading(
+    fontSize: 22,
+    fontWeight: wSemibold,
+    letterSpacing: -0.22,
+    height: 1.2,
+  );
+
+  static TextStyle get titleMedium => _heading(
+    fontSize: 18,
+    fontWeight: wSemibold,
+    letterSpacing: -0.18,
+    height: 1.25,
+  );
+
+  static TextStyle get titleSmall => _heading(
+    fontSize: 16,
+    fontWeight: wSemibold,
+    letterSpacing: -0.16,
+    height: 1.3,
+  );
+
+  // ── Body styles (Inter) ──
+
+  /// Body text — main content
+  static TextStyle get bodyLarge => _body(
+    fontSize: 17,
+    height: 1.7,
+  );
+
+  static TextStyle get bodyMedium => _body(
+    fontSize: 15,
+    height: 1.7,
+  );
+
+  /// Feature body / smaller content
+  static TextStyle get bodySmall => _body(
+    fontSize: 13,
+    height: 1.6,
+    color: AppColors.subtle,
+  );
+
+  // ── Label / UI styles (Inter) ──
+
+  /// Nav links
+  static TextStyle get navLink => _body(
+    fontSize: 14,
+    fontWeight: wMedium,
+    letterSpacing: 0.56,
+    height: 1.0,
+    color: AppColors.foreground,
+  );
+
+  /// Button text
+  static TextStyle get buttonLarge => _body(
+    fontSize: 16,
+    fontWeight: wSemibold,
+    letterSpacing: 0.48,
+    height: 1.2,
+    color: AppColors.background,
+  );
+
+  static TextStyle get buttonMedium => _body(
+    fontSize: 14,
+    fontWeight: wSemibold,
+    letterSpacing: 0.42,
+    height: 1.2,
+    color: AppColors.background,
+  );
+
+  /// Tags / eyebrows — uppercase
+  static TextStyle get tag => _body(
     fontSize: 13,
     fontWeight: wMedium,
+    letterSpacing: 3.25,
+    height: 1.3,
+    color: AppColors.subtle,
+  );
+
+  /// Labels
+  static TextStyle get labelLarge => _body(
+    fontSize: 14,
+    fontWeight: wSemibold,
+    letterSpacing: 0.42,
+    height: 1.4,
+    color: AppColors.foreground,
+  );
+
+  static TextStyle get labelMedium => _body(
+    fontSize: 12,
+    fontWeight: wSemibold,
+    letterSpacing: 1.8,
+    height: 1.4,
+    color: AppColors.subtle,
+  );
+
+  /// Small labels
+  static TextStyle get labelSmall => _body(
+    fontSize: 11,
+    fontWeight: wMedium,
+    letterSpacing: 1.1,
+    height: 1.4,
+    color: AppColors.faint,
+  );
+
+  /// Chip / badge
+  static TextStyle get chip => _body(
+    fontSize: 12,
+    fontWeight: wSemibold,
     letterSpacing: 0.3,
     height: 1.3,
-    color: AppColors.textSecondary,
+    color: AppColors.foreground,
   );
 
-  static TextStyle get metricLarge => const TextStyle(
-    fontFamilyFallback: fontFamily,
-    fontSize: 72,
-    fontWeight: wLight,
-    letterSpacing: -2,
-    height: 1.0,
-    color: AppColors.textPrimary,
-  );
+  // ── Input styles (Inter) ──
 
-  // Input styles
-  static TextStyle get input => const TextStyle(
-    fontFamilyFallback: fontFamily,
+  static TextStyle get input => _body(
     fontSize: 16,
-    fontWeight: wRegular,
-    letterSpacing: 0,
     height: 1.5,
-    color: AppColors.textPrimary,
+    color: AppColors.foreground,
   );
 
-  static TextStyle get inputLabel => const TextStyle(
-    fontFamilyFallback: fontFamily,
+  static TextStyle get inputLabel => _body(
     fontSize: 12,
     fontWeight: wMedium,
     letterSpacing: 0.3,
     height: 1.4,
-    color: AppColors.textSecondary,
+    color: AppColors.subtle,
   );
 
-  static TextStyle get inputHint => const TextStyle(
-    fontFamilyFallback: fontFamily,
+  static TextStyle get inputHint => _body(
     fontSize: 16,
-    fontWeight: wRegular,
-    letterSpacing: 0,
     height: 1.5,
-    color: AppColors.textTertiary,
+    color: AppColors.faint,
   );
 
-  // Status/error text
-  static TextStyle get errorText => const TextStyle(
-    fontFamilyFallback: fontFamily,
+  // ── Status text ──
+
+  static TextStyle get errorText => _body(
     fontSize: 12,
     fontWeight: wMedium,
     letterSpacing: 0.2,
@@ -288,12 +282,37 @@ class AppTypography {
     color: AppColors.error,
   );
 
-  static TextStyle get successText => const TextStyle(
-    fontFamilyFallback: fontFamily,
+  static TextStyle get successText => _body(
     fontSize: 12,
     fontWeight: wMedium,
     letterSpacing: 0.2,
     height: 1.4,
     color: AppColors.success,
+  );
+
+  // ── Overline / caption ──
+
+  static TextStyle get overline => _body(
+    fontSize: 10,
+    fontWeight: wSemibold,
+    letterSpacing: 2.5,
+    height: 1.4,
+    color: AppColors.subtle,
+  );
+
+  static TextStyle get caption => _body(
+    fontSize: 12,
+    letterSpacing: 0.2,
+    height: 1.4,
+    color: AppColors.subtle,
+  );
+
+  /// Stat label
+  static TextStyle get statLabel => _body(
+    fontSize: 13,
+    fontWeight: wMedium,
+    letterSpacing: 1.3,
+    height: 1.3,
+    color: AppColors.subtle,
   );
 }

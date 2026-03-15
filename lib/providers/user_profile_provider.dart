@@ -84,4 +84,12 @@ class UserProfileNotifier extends StateNotifier<UserProfileState> {
       );
     }
   }
+
+  Future<void> clearProfile() async {
+    try {
+      await _storage.clearProfile();
+    } finally {
+      state = const UserProfileState(isLoading: false);
+    }
+  }
 }

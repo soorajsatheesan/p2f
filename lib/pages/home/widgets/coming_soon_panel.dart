@@ -8,40 +8,20 @@ class ComingSoonPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(28),
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: isDark
-              ? const [Color(0xFF1A2235), Color(0xFF171D2E)]
-              : const [Color(0xFFF3F7FF), Color(0xFFF7ECF4)],
-        ),
-        border: Border.all(
-          color: isDark ? const Color(0xFF2D3E61) : const Color(0xFFD8E2F8),
-        ),
+        borderRadius: BorderRadius.circular(20),
+        color: AppColors.surface,
+        border: Border.all(color: AppColors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title,
-            style: AppTypography.headlineSmall.copyWith(
-              color: isDark ? AppColors.white : AppColors.textPrimary,
-            ),
-          ),
+          Text(title, style: AppTypography.headlineSmall),
           const SizedBox(height: 8),
-          Text(
-            'Coming soon',
-            style: AppTypography.bodyMedium.copyWith(
-              color: isDark ? AppColors.gray400 : AppColors.textSecondary,
-            ),
-          ),
+          Text('Coming soon', style: AppTypography.bodyMedium),
         ],
       ),
     );

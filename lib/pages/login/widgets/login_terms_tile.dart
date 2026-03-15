@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:p2f/theme/theme.dart';
 
-/// Modern terms acceptance tile with checkbox
 class LoginTermsTile extends StatelessWidget {
   const LoginTermsTile({
     required this.value,
@@ -11,46 +10,49 @@ class LoginTermsTile extends StatelessWidget {
     required this.onPrivacyTap,
     super.key,
     this.enabled = true,
+    this.compact = false,
   });
 
   final bool value;
   final ValueChanged<bool?> onChanged;
   final bool showError;
   final bool enabled;
+  final bool compact;
   final VoidCallback onTermsTap;
   final VoidCallback onPrivacyTap;
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
         CheckboxListTile(
           contentPadding: EdgeInsets.zero,
+          dense: compact,
           value: value,
           onChanged: enabled ? onChanged : null,
           controlAffinity: ListTileControlAffinity.leading,
-          activeColor: isDark
-              ? const Color(0xFF9EBEFF)
-              : const Color(0xFF2E63D3),
-          checkColor: Colors.white,
+          visualDensity: compact
+              ? const VisualDensity(horizontal: -4, vertical: -4)
+              : VisualDensity.standard,
+          materialTapTargetSize: compact
+              ? MaterialTapTargetSize.shrinkWrap
+              : MaterialTapTargetSize.padded,
+          activeColor: AppColors.foreground,
+          checkColor: AppColors.background,
           checkboxShape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(6),
           ),
           side: BorderSide(
-            color: showError
-                ? (isDark ? AppColors.errorLight : AppColors.error)
-                : (isDark ? AppColors.gray500 : AppColors.gray400),
+            color: showError ? AppColors.error : AppColors.borderStrong,
             width: 2,
           ),
           title: Text.rich(
             TextSpan(
-              style: AppTypography.bodyMedium.copyWith(
-                color: isDark ? AppColors.gray300 : AppColors.textSecondary,
-              ),
+              style:
+                  (compact ? AppTypography.bodySmall : AppTypography.bodyMedium)
+                      .copyWith(color: AppColors.muted),
               children: [
                 const TextSpan(text: 'I agree to the '),
                 WidgetSpan(
@@ -63,12 +65,11 @@ class LoginTermsTile extends StatelessWidget {
                       child: Text(
                         'Terms & Conditions',
                         style: TextStyle(
-                          color: isDark
-                              ? AppColors.white
-                              : AppColors.textPrimary,
+                          color: AppColors.foreground,
                           fontWeight: FontWeight.w600,
                           decoration: TextDecoration.underline,
-                          decorationThickness: 1.3,
+                          decorationColor: AppColors.foreground,
+                          decorationThickness: 1,
                         ),
                       ),
                     ),
@@ -85,12 +86,11 @@ class LoginTermsTile extends StatelessWidget {
                       child: Text(
                         'Privacy Policy',
                         style: TextStyle(
-                          color: isDark
-                              ? AppColors.white
-                              : AppColors.textPrimary,
+                          color: AppColors.foreground,
                           fontWeight: FontWeight.w600,
                           decoration: TextDecoration.underline,
-                          decorationThickness: 1.3,
+                          decorationColor: AppColors.foreground,
+                          decorationThickness: 1,
                         ),
                       ),
                     ),
@@ -103,20 +103,18 @@ class LoginTermsTile extends StatelessWidget {
         if (showError)
           AnimatedContainer(
             duration: AppTheme.fastDuration,
-            padding: const EdgeInsets.only(left: 12, top: 4),
+            padding: EdgeInsets.only(left: compact ? 8 : 12, top: 4),
             child: Row(
               children: [
-                Icon(
+                const Icon(
                   Icons.error_outline,
                   size: 14,
-                  color: isDark ? AppColors.errorLight : AppColors.error,
+                  color: AppColors.error,
                 ),
                 const SizedBox(width: 6),
                 Text(
                   'You must accept the terms to continue.',
-                  style: AppTypography.errorText.copyWith(
-                    color: isDark ? AppColors.errorLight : AppColors.error,
-                  ),
+                  style: AppTypography.errorText,
                 ),
               ],
             ),

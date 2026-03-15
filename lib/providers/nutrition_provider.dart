@@ -32,6 +32,7 @@ class NutritionState {
     this.isLoadingHistory = true,
     this.isAnalyzing = false,
     this.errorMessage,
+    this.selectedDay,
   });
 
   final List<NutritionEntry> entries;
@@ -39,38 +40,49 @@ class NutritionState {
   final bool isLoadingHistory;
   final bool isAnalyzing;
   final String? errorMessage;
+  final DateTime? selectedDay;
 
-  int get todayTotalCalories {
-    final now = DateTime.now();
-    return entries
-        .where(
-          (entry) =>
-              entry.createdAt.year == now.year &&
-              entry.createdAt.month == now.month &&
-              entry.createdAt.day == now.day,
-        )
-        .fold<int>(0, (sum, entry) => sum + entry.analysis.calories);
+  DateTime get effectiveSelectedDay => _dateOnly(selectedDay ?? DateTime.now());
+
+  List<NutritionEntry> get selectedDayEntries {
+    final day = effectiveSelectedDay;
+    return entries.where((entry) => _isSameDay(entry.createdAt, day)).toList();
   }
 
-  double get todayProteinG =>
-      _todayMacroTotal((entry) => entry.analysis.proteinG);
+  List<DateTime> get availableDays {
+    final seen = <String>{};
+    final days = <DateTime>[];
+    for (final entry in entries) {
+      final day = _dateOnly(entry.createdAt);
+      final key = day.toIso8601String();
+      if (seen.add(key)) {
+        days.add(day);
+      }
+    }
+    return days;
+  }
 
-  double get todayCarbsG => _todayMacroTotal((entry) => entry.analysis.carbsG);
+  bool get hasEntriesForSelectedDay => selectedDayEntries.isNotEmpty;
 
-  double get todayFatsG => _todayMacroTotal((entry) => entry.analysis.fatsG);
+  int get selectedDayTotalCalories => selectedDayEntries.fold<int>(
+    0,
+    (sum, entry) => sum + entry.analysis.calories,
+  );
 
-  double get todayFiberG => _todayMacroTotal((entry) => entry.analysis.fiberG);
+  double get selectedDayProteinG =>
+      _selectedDayMacroTotal((entry) => entry.analysis.proteinG);
 
-  double _todayMacroTotal(double Function(NutritionEntry entry) pick) {
-    final now = DateTime.now();
-    return entries
-        .where(
-          (entry) =>
-              entry.createdAt.year == now.year &&
-              entry.createdAt.month == now.month &&
-              entry.createdAt.day == now.day,
-        )
-        .fold<double>(0, (sum, entry) => sum + pick(entry));
+  double get selectedDayCarbsG =>
+      _selectedDayMacroTotal((entry) => entry.analysis.carbsG);
+
+  double get selectedDayFatsG =>
+      _selectedDayMacroTotal((entry) => entry.analysis.fatsG);
+
+  double get selectedDayFiberG =>
+      _selectedDayMacroTotal((entry) => entry.analysis.fiberG);
+
+  double _selectedDayMacroTotal(double Function(NutritionEntry entry) pick) {
+    return selectedDayEntries.fold<double>(0, (sum, entry) => sum + pick(entry));
   }
 
   NutritionState copyWith({
@@ -80,6 +92,7 @@ class NutritionState {
     bool? isLoadingHistory,
     bool? isAnalyzing,
     Object? errorMessage = _sentinel,
+    Object? selectedDay = _sentinel,
   }) {
     return NutritionState(
       entries: entries ?? this.entries,
@@ -91,6 +104,9 @@ class NutritionState {
       errorMessage: identical(errorMessage, _sentinel)
           ? this.errorMessage
           : errorMessage as String?,
+      selectedDay: identical(selectedDay, _sentinel)
+          ? this.selectedDay
+          : selectedDay as DateTime?,
     );
   }
 }
@@ -117,7 +133,11 @@ class NutritionNotifier extends StateNotifier<NutritionState> {
     state = state.copyWith(isLoadingHistory: true, errorMessage: null);
     try {
       final entries = await _storageService.getEntries();
-      state = state.copyWith(entries: entries, isLoadingHistory: false);
+      state = state.copyWith(
+        entries: entries,
+        isLoadingHistory: false,
+        selectedDay: _resolveSelectedDay(entries, state.selectedDay),
+      );
     } catch (_) {
       state = state.copyWith(
         isLoadingHistory: false,
@@ -135,7 +155,7 @@ class NutritionNotifier extends StateNotifier<NutritionState> {
     try {
       final key = await _secureStorage.getApiKey(StorageKeys.apiToken);
       if (key == null || key.trim().isEmpty) {
-        throw Exception('Gemini API key not found. Please reconnect key.');
+        throw Exception('OpenAI API key not found. Please reconnect key.');
       }
 
       final imageFile = File(imagePath);
@@ -163,6 +183,7 @@ class NutritionNotifier extends StateNotifier<NutritionState> {
         entries: updatedEntries,
         lastAnalysis: analysis,
         isAnalyzing: false,
+        selectedDay: _resolveSelectedDay(updatedEntries, DateTime.now()),
       );
       return stored;
     } catch (e) {
@@ -178,10 +199,39 @@ class NutritionNotifier extends StateNotifier<NutritionState> {
     try {
       await _storageService.deleteEntry(id);
       final updatedEntries = state.entries.where((e) => e.id != id).toList();
-      state = state.copyWith(entries: updatedEntries);
+      state = state.copyWith(
+        entries: updatedEntries,
+        selectedDay: _resolveSelectedDay(updatedEntries, state.selectedDay),
+      );
     } catch (_) {
       state = state.copyWith(errorMessage: 'Failed to delete meal entry.');
     }
+  }
+
+  void selectDay(DateTime day) {
+    state = state.copyWith(selectedDay: _dateOnly(day), errorMessage: null);
+  }
+
+  Future<void> clearSessionData() async {
+    try {
+      await _storageService.clearEntries();
+    } finally {
+      state = NutritionState(
+        isLoadingHistory: false,
+        selectedDay: _dateOnly(DateTime.now()),
+      );
+    }
+  }
+
+  DateTime _resolveSelectedDay(
+    List<NutritionEntry> entries,
+    DateTime? preferredDay,
+  ) {
+    final normalizedPreferred = _dateOnly(preferredDay ?? DateTime.now());
+    if (entries.any((entry) => _isSameDay(entry.createdAt, normalizedPreferred))) {
+      return normalizedPreferred;
+    }
+    return normalizedPreferred;
   }
 
   String _mimeTypeFromPath(String path) {
@@ -191,4 +241,10 @@ class NutritionNotifier extends StateNotifier<NutritionState> {
     if (lower.endsWith('.heic')) return 'image/heic';
     return 'image/jpeg';
   }
+}
+
+DateTime _dateOnly(DateTime date) => DateTime(date.year, date.month, date.day);
+
+bool _isSameDay(DateTime a, DateTime b) {
+  return a.year == b.year && a.month == b.month && a.day == b.day;
 }

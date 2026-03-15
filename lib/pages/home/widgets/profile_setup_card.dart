@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:p2f/models/user_profile.dart';
 import 'package:p2f/pages/home/widgets/user_profile_form.dart';
 import 'package:p2f/theme/theme.dart';
-import 'package:p2f/widgets/global/global_widgets.dart';
 
 class ProfileSetupCard extends StatefulWidget {
   const ProfileSetupCard({
@@ -47,9 +46,7 @@ class _ProfileSetupCardState extends State<ProfileSetupCard> {
       _hideTimer?.cancel();
       _hideTimer = Timer(const Duration(seconds: 5), () {
         if (!mounted) return;
-        setState(() {
-          _hidden = true;
-        });
+        setState(() => _hidden = true);
       });
     }
   }
@@ -62,77 +59,86 @@ class _ProfileSetupCardState extends State<ProfileSetupCard> {
 
   @override
   Widget build(BuildContext context) {
-    if (_hidden) {
-      return const SizedBox.shrink();
-    }
+    if (_hidden) return const SizedBox.shrink();
 
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return ZenCard(
-      radius: 24,
-      backgroundColor: isDark ? const Color(0xFF1A2438) : AppColors.surface,
-      borderColor: isDark ? const Color(0xFF2D3E61) : const Color(0xFFD8E2F8),
-      child: AnimatedSwitcher(
-        duration: AppTheme.normalDuration,
-        switchInCurve: Curves.easeOutCubic,
-        switchOutCurve: Curves.easeInCubic,
-        child: (_collapsed && widget.profile != null)
-            ? _CompletedState(
-                key: const ValueKey('completed'),
-                profile: widget.profile!,
-              )
-            : _FormState(
-                key: const ValueKey('form'),
-                profile: widget.profile,
-                isSaving: widget.isSaving,
-                onSave: widget.onSave,
-              ),
-      ),
+    return AnimatedSwitcher(
+      duration: AppTheme.normalDuration,
+      switchInCurve: AppTheme.primaryEasing,
+      switchOutCurve: Curves.easeInCubic,
+      child: (_collapsed && widget.profile != null)
+          ? _CompletedSection(
+              key: const ValueKey('completed'),
+              profile: widget.profile!,
+            )
+          : _FormSection(
+              key: const ValueKey('form'),
+              profile: widget.profile,
+              isSaving: widget.isSaving,
+              onSave: widget.onSave,
+            ),
     );
   }
 }
 
-class _CompletedState extends StatelessWidget {
-  const _CompletedState({required super.key, required this.profile});
+// ── Completed state ───────────────────────────────────────────────────────────
+
+class _CompletedSection extends StatelessWidget {
+  const _CompletedSection({required super.key, required this.profile});
 
   final UserProfile profile;
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            const Icon(
-              Icons.check_circle_rounded,
-              color: Color(0xFF1F8A4C),
-              size: 20,
+            Text(
+              'PROFILE',
+              style: AppTypography.tag.copyWith(
+                color: AppColors.faint,
+                letterSpacing: 2,
+                fontSize: 10,
+              ),
             ),
             const SizedBox(width: 8),
-            Text(
-              'Profile setup completed',
-              style: AppTypography.titleMedium.copyWith(
-                color: isDark ? AppColors.white : AppColors.textPrimary,
-              ),
+            const Icon(
+              Icons.check_circle_rounded,
+              size: 11,
+              color: AppColors.subtle,
             ),
           ],
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 14),
         Text(
-          '${profile.name}, ${profile.age} yrs • ${profile.weightKg.toStringAsFixed(1)}kg • ${profile.heightCm.toStringAsFixed(1)}cm',
-          style: AppTypography.bodySmall.copyWith(
-            color: isDark ? AppColors.gray400 : AppColors.textSecondary,
+          profile.name,
+          style: AppTypography.headlineSmall.copyWith(
+            fontSize: 22,
+            fontWeight: FontWeight.w600,
           ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          '${profile.age} yrs  ·  ${profile.weightKg.toStringAsFixed(1)} kg  ·  '
+          '${profile.heightCm.toStringAsFixed(0)} cm',
+          style: AppTypography.bodySmall.copyWith(color: AppColors.subtle),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          profile.healthGoal,
+          style: AppTypography.bodySmall.copyWith(color: AppColors.muted),
         ),
       ],
     );
   }
 }
 
-class _FormState extends StatelessWidget {
-  const _FormState({
+// ── Form state ────────────────────────────────────────────────────────────────
+
+class _FormSection extends StatelessWidget {
+  const _FormSection({
     required super.key,
     required this.profile,
     required this.isSaving,
@@ -145,25 +151,25 @@ class _FormState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Tell us about you',
-          style: AppTypography.headlineSmall.copyWith(
-            color: isDark ? AppColors.white : AppColors.textPrimary,
+          'PROFILE SETUP',
+          style: AppTypography.tag.copyWith(
+            color: AppColors.faint,
+            letterSpacing: 2,
+            fontSize: 10,
           ),
         ),
+        const SizedBox(height: 14),
+        Text('Tell us about you', style: AppTypography.headlineSmall),
         const SizedBox(height: 6),
         Text(
           'Used locally to personalize your fitness guidance.',
-          style: AppTypography.bodySmall.copyWith(
-            color: isDark ? AppColors.gray400 : AppColors.textSecondary,
-          ),
+          style: AppTypography.bodySmall,
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 22),
         UserProfileForm(
           initialProfile: profile,
           isSaving: isSaving,

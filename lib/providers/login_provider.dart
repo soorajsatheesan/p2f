@@ -1,20 +1,20 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:p2f/services/gemini_validation_service.dart';
+import 'package:p2f/services/openai_validation_service.dart';
 import 'package:p2f/services/secure_storage_service.dart';
 
 final secureStorageProvider = Provider<SecureStorageService>((ref) {
   return SecureStorageService();
 });
 
-final geminiValidationServiceProvider = Provider<GeminiValidationService>((
+final openAiValidationServiceProvider = Provider<OpenAiValidationService>((
   ref,
 ) {
-  return GeminiValidationService();
+  return OpenAiValidationService();
 });
 
 final loginProvider = StateNotifierProvider<LoginNotifier, LoginState>((ref) {
   return LoginNotifier(
-    geminiService: ref.read(geminiValidationServiceProvider),
+    openAiService: ref.read(openAiValidationServiceProvider),
     secureStorage: ref.read(secureStorageProvider),
   );
 });
@@ -66,13 +66,13 @@ class LoginState {
 const Object _sentinel = Object();
 
 class LoginNotifier extends StateNotifier<LoginState> {
-  final GeminiValidationService _geminiService;
+  final OpenAiValidationService _openAiService;
   final SecureStorageService _secureStorage;
 
   LoginNotifier({
-    required GeminiValidationService geminiService,
+    required OpenAiValidationService openAiService,
     required SecureStorageService secureStorage,
-  }) : _geminiService = geminiService,
+  }) : _openAiService = openAiService,
        _secureStorage = secureStorage,
        super(const LoginState());
 
@@ -104,8 +104,7 @@ class LoginNotifier extends StateNotifier<LoginState> {
     state = state.copyWith(isLoading: true, errorMessage: null);
 
     try {
-      // Validate API key with Gemini
-      final isValid = await _geminiService.validateApiKey(state.apiKey);
+      final isValid = await _openAiService.validateApiKey(state.apiKey);
 
       if (isValid) {
         // Store API key securely
@@ -139,7 +138,7 @@ class LoginNotifier extends StateNotifier<LoginState> {
   }
 
   Future<void> logout() async {
-    await _secureStorage.deleteApiKey(StorageKeys.apiToken);
+    await _secureStorage.deleteAllApiKeys();
     state = const LoginState();
   }
 }

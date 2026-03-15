@@ -62,4 +62,9 @@ class NutritionStorageService {
     final db = await _database();
     await db.delete(_tableName, where: 'id = ?', whereArgs: [id]);
   }
+
+  Future<void> clearEntries() async {
+    final db = await _database();
+    await db.delete(_tableName);
+  }
 }

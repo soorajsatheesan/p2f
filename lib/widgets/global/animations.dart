@@ -1,15 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:p2f/theme/theme.dart';
 
-/// A collection of modern animation utilities and widgets
-/// for smooth, polished transitions.
-
-/// Fade and slide animation wrapper
+/// Fade and slide animation — maps to design-theme "Fade Up" reveal
 class FadeSlideAnimation extends StatelessWidget {
   const FadeSlideAnimation({
     required this.child,
     required this.animation,
-    this.slideBegin = const Offset(0, 20),
+    this.slideBegin = const Offset(0, 50), // translateY(50px)
     super.key,
   });
 
@@ -22,7 +19,7 @@ class FadeSlideAnimation extends StatelessWidget {
     final slideAnimation = Tween<Offset>(
       begin: slideBegin,
       end: Offset.zero,
-    ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOutCubic));
+    ).animate(CurvedAnimation(parent: animation, curve: AppTheme.primaryEasing));
 
     final fadeAnimation = Tween<double>(
       begin: 0,
@@ -36,13 +33,13 @@ class FadeSlideAnimation extends StatelessWidget {
   }
 }
 
-/// Staggered list animation builder
+/// Staggered list animation with design-theme hero stagger sequence
 class StaggeredListAnimation extends StatelessWidget {
   const StaggeredListAnimation({
     required this.children,
     required this.animation,
     this.itemDelay = 0.1,
-    this.slideBegin = const Offset(0, 30),
+    this.slideBegin = const Offset(0, 50),
     super.key,
   });
 
@@ -70,7 +67,7 @@ class StaggeredListAnimation extends StatelessWidget {
           curve: Interval(
             intervalStart.clamp(0.0, 0.9),
             intervalEnd.clamp(0.3, 1.0),
-            curve: Curves.easeOutCubic,
+            curve: AppTheme.primaryEasing,
           ),
         );
 
@@ -84,7 +81,7 @@ class StaggeredListAnimation extends StatelessWidget {
   }
 }
 
-/// Scale animation wrapper
+/// Scale animation — maps to "Scale Up" reveal
 class ScaleAnimation extends StatelessWidget {
   const ScaleAnimation({
     required this.child,
@@ -116,11 +113,11 @@ class ScaleAnimation extends StatelessWidget {
   }
 }
 
-/// Animated page route with slide transition
+/// Slide page route
 class SlidePageRoute<T> extends PageRouteBuilder<T> {
   SlidePageRoute({required this.child, this.direction = AxisDirection.right})
     : super(
-        transitionDuration: AppTheme.normalDuration,
+        transitionDuration: AppTheme.slowDuration,
         reverseTransitionDuration: AppTheme.normalDuration,
         pageBuilder: (context, animation, secondaryAnimation) => child,
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
@@ -142,7 +139,7 @@ class SlidePageRoute<T> extends PageRouteBuilder<T> {
 
           return SlideTransition(
             position: Tween<Offset>(begin: begin, end: Offset.zero).animate(
-              CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
+              CurvedAnimation(parent: animation, curve: AppTheme.primaryEasing),
             ),
             child: FadeTransition(opacity: animation, child: child),
           );
@@ -153,7 +150,7 @@ class SlidePageRoute<T> extends PageRouteBuilder<T> {
   final AxisDirection direction;
 }
 
-/// Animated page route with fade transition
+/// Fade page route
 class FadePageRoute<T> extends PageRouteBuilder<T> {
   FadePageRoute({required this.child})
     : super(
@@ -174,12 +171,12 @@ class FadePageRoute<T> extends PageRouteBuilder<T> {
   final Widget child;
 }
 
-/// Pulse animation for attention-grabbing elements
+/// Pulse animation — maps to CTA pulse (2.5s loop)
 class PulseAnimation extends StatefulWidget {
   const PulseAnimation({
     required this.child,
     super.key,
-    this.duration = const Duration(milliseconds: 2000),
+    this.duration = const Duration(milliseconds: 2500),
     this.minScale = 0.98,
     this.maxScale = 1.02,
   });
@@ -219,7 +216,6 @@ class _PulseAnimationState extends State<PulseAnimation>
           begin: widget.minScale,
           end: widget.maxScale,
         ).evaluate(_controller);
-
         return Transform.scale(scale: scale, child: child);
       },
       child: widget.child,
@@ -227,7 +223,7 @@ class _PulseAnimationState extends State<PulseAnimation>
   }
 }
 
-/// Shimmer loading effect
+/// Shimmer loading — monochrome variant
 class ShimmerLoading extends StatefulWidget {
   const ShimmerLoading({required this.child, super.key});
 
@@ -264,10 +260,10 @@ class _ShimmerLoadingState extends State<ShimmerLoading>
         return ShaderMask(
           shaderCallback: (bounds) {
             return LinearGradient(
-              colors: [
-                Colors.grey.shade300,
-                Colors.grey.shade100,
-                Colors.grey.shade300,
+              colors: const [
+                AppColors.surfaceElevated,
+                AppColors.borderHover,
+                AppColors.surfaceElevated,
               ],
               stops: const [0.0, 0.5, 1.0],
               begin: Alignment(-1.0 + _controller.value * 2, 0),
@@ -282,7 +278,7 @@ class _ShimmerLoadingState extends State<ShimmerLoading>
   }
 }
 
-/// Animated container with smooth transitions
+/// Animated smooth container
 class AnimatedContainerModern extends StatelessWidget {
   const AnimatedContainerModern({
     required this.child,
@@ -312,7 +308,7 @@ class AnimatedContainerModern extends StatelessWidget {
   }
 }
 
-/// Skeleton loading placeholder
+/// Skeleton loading placeholder — monochrome
 class Skeleton extends StatelessWidget {
   const Skeleton({
     super.key,
@@ -332,7 +328,7 @@ class Skeleton extends StatelessWidget {
         height: height,
         width: width,
         decoration: BoxDecoration(
-          color: Colors.grey.shade300,
+          color: AppColors.surfaceElevated,
           borderRadius: BorderRadius.circular(borderRadius),
         ),
       ),
@@ -379,24 +375,14 @@ class _AnimatedIconButtonState extends State<AnimatedIconButton>
   }
 
   void _onTapDown(TapDownDetails details) {
-    if (widget.onPressed != null) {
-      _controller.forward();
-    }
+    if (widget.onPressed != null) _controller.forward();
   }
 
-  void _onTapUp(TapUpDetails details) {
-    _controller.reverse();
-  }
-
-  void _onTapCancel() {
-    _controller.reverse();
-  }
+  void _onTapUp(TapUpDetails details) => _controller.reverse();
+  void _onTapCancel() => _controller.reverse();
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
     return GestureDetector(
       onTapDown: _onTapDown,
       onTapUp: _onTapUp,
@@ -414,9 +400,7 @@ class _AnimatedIconButtonState extends State<AnimatedIconButton>
         child: Icon(
           widget.icon,
           size: widget.size,
-          color:
-              widget.color ??
-              (isDark ? AppColors.white : AppColors.textPrimary),
+          color: widget.color ?? AppColors.foreground,
         ),
       ),
     );

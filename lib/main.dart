@@ -1,13 +1,34 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'theme/theme.dart';
-import 'pages/login_page.dart';
-import 'pages/home_page.dart';
-import 'providers/login_provider.dart';
-import 'widgets/global/global_widgets.dart';
+import 'package:p2f/pages/home_page.dart';
+import 'package:p2f/pages/login_page.dart';
+import 'package:p2f/pages/tell_us_about_you_page.dart';
+import 'package:p2f/providers/login_provider.dart';
+import 'package:p2f/providers/user_profile_provider.dart';
+import 'package:p2f/theme/theme.dart';
+import 'package:p2f/widgets/global/global_widgets.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.light,
+      systemNavigationBarColor: AppColors.background,
+      systemNavigationBarIconBrightness: Brightness.light,
+    ),
+  );
   runApp(const ProviderScope(child: MyApp()));
+}
+
+final GlobalKey<NavigatorState> _appNavigatorKey = GlobalKey<NavigatorState>();
+
+abstract final class _AppRoute {
+  static const splash = '/';
+  static const login = '/login';
+  static const onboarding = '/onboarding';
+  static const home = '/home';
 }
 
 class MyApp extends StatelessWidget {
@@ -18,69 +39,156 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'P2F',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.light,
+      theme: AppTheme.dark,
       darkTheme: AppTheme.dark,
-      themeMode: ThemeMode.light,
-      builder: (context, child) {
-        return Stack(
-          children: [
-            const Positioned.fill(child: AppGradientBackground()),
-            child ?? const SizedBox.shrink(),
-          ],
-        );
+      themeMode: ThemeMode.dark,
+      navigatorKey: _appNavigatorKey,
+      initialRoute: _AppRoute.splash,
+      onGenerateRoute: (settings) {
+        switch (settings.name) {
+          case _AppRoute.login:
+            return MaterialPageRoute<void>(
+              builder: (_) => const LoginPage(),
+              settings: settings,
+            );
+          case _AppRoute.onboarding:
+            return MaterialPageRoute<void>(
+              builder: (_) => const TellUsAboutYouPage(),
+              settings: settings,
+            );
+          case _AppRoute.home:
+            return MaterialPageRoute<void>(
+              builder: (_) => const HomePage(),
+              settings: settings,
+            );
+          case _AppRoute.splash:
+          default:
+            return MaterialPageRoute<void>(
+              builder: (_) => const _LoadingScreen(),
+              settings: const RouteSettings(name: _AppRoute.splash),
+            );
+        }
       },
-      home: const AuthWrapper(),
+      builder: (context, child) {
+        return AuthWrapper(child: child ?? const SizedBox.shrink());
+      },
     );
   }
 }
 
 class AuthWrapper extends ConsumerStatefulWidget {
-  const AuthWrapper({super.key});
+  const AuthWrapper({required this.child, super.key});
+
+  final Widget child;
 
   @override
   ConsumerState<AuthWrapper> createState() => _AuthWrapperState();
 }
 
-class _AuthWrapperState extends ConsumerState<AuthWrapper>
-    with SingleTickerProviderStateMixin {
-  bool _isLoading = true;
-  late final AnimationController _animationController;
+class _AuthWrapperState extends ConsumerState<AuthWrapper> {
+  bool _isBootstrapping = true;
 
   @override
   void initState() {
     super.initState();
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 1500),
-      vsync: this,
-    )..repeat();
     _checkAuth();
-  }
-
-  @override
-  void dispose() {
-    _animationController.dispose();
-    super.dispose();
   }
 
   Future<void> _checkAuth() async {
     await ref.read(loginProvider.notifier).checkExistingLogin();
+    if (!mounted) return;
+    setState(() => _isBootstrapping = false);
+    _syncInitialRoute();
+  }
 
-    if (mounted) {
-      setState(() {
-        _isLoading = false;
-      });
+  void _withNavigator(void Function(NavigatorState navigator) action) {
+    final navigator = _appNavigatorKey.currentState;
+    if (navigator != null) {
+      action(navigator);
+      return;
     }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final deferredNavigator = _appNavigatorKey.currentState;
+      if (deferredNavigator != null) action(deferredNavigator);
+    });
+  }
+
+  void _replaceStack(String routeName) {
+    _withNavigator(
+      (navigator) => navigator.pushNamedAndRemoveUntil(
+        routeName,
+        (route) => false,
+      ),
+    );
+  }
+
+  void _pushOnboardingFromLogin() {
+    _withNavigator((navigator) => navigator.pushNamed(_AppRoute.onboarding));
+  }
+
+  void _syncInitialRoute() {
+    final loginState = ref.read(loginProvider);
+    final profileState = ref.read(userProfileProvider);
+
+    if (!loginState.isSuccess) {
+      _replaceStack(_AppRoute.login);
+      return;
+    }
+
+    if (profileState.isLoading) {
+      _replaceStack(_AppRoute.splash);
+      return;
+    }
+
+    _replaceStack(profileState.hasProfile ? _AppRoute.home : _AppRoute.onboarding);
   }
 
   @override
   Widget build(BuildContext context) {
-    final loginState = ref.watch(loginProvider);
+    ref.listen<LoginState>(loginProvider, (previous, current) {
+      final wasLoggedIn = previous?.isSuccess ?? false;
+      final isLoggedIn = current.isSuccess;
 
-    if (_isLoading) {
-      return const _LoadingScreen();
-    }
+      if (wasLoggedIn && !isLoggedIn) {
+        _replaceStack(_AppRoute.login);
+        return;
+      }
 
-    return loginState.isSuccess ? const HomePage() : const LoginPage();
+      if (!wasLoggedIn && isLoggedIn && !_isBootstrapping) {
+        final profileState = ref.read(userProfileProvider);
+        if (profileState.isLoading) {
+          _replaceStack(_AppRoute.splash);
+          return;
+        }
+
+        if (profileState.hasProfile) {
+          _replaceStack(_AppRoute.home);
+        } else {
+          _pushOnboardingFromLogin();
+        }
+      }
+    });
+
+    ref.listen<UserProfileState>(userProfileProvider, (previous, current) {
+      final isLoggedIn = ref.read(loginProvider).isSuccess;
+      if (!isLoggedIn || current.isLoading) return;
+
+      final finishedLoading = previous?.isLoading == true && !current.isLoading;
+      final gainedProfile = !(previous?.hasProfile ?? false) && current.hasProfile;
+
+      if (gainedProfile) {
+        _replaceStack(_AppRoute.home);
+        return;
+      }
+
+      if (_isBootstrapping || finishedLoading) {
+        _replaceStack(current.hasProfile ? _AppRoute.home : _AppRoute.onboarding);
+      }
+    });
+
+    return widget.child;
   }
 }
 
@@ -89,84 +197,18 @@ class _LoadingScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final accent = isDark ? const Color(0xFF9EBEFF) : AppColors.primary;
-
     return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: Stack(
-        children: [
-          Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // Animated logo
-                TweenAnimationBuilder<double>(
-                  duration: const Duration(milliseconds: 800),
-                  tween: Tween(begin: 0.0, end: 1.0),
-                  curve: Curves.easeOutBack,
-                  builder: (context, value, child) {
-                    return Transform.scale(scale: value, child: child);
-                  },
-                  child: Container(
-                    width: 88,
-                    height: 88,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [accent, AppColors.gray800],
-                      ),
-                      borderRadius: BorderRadius.circular(24),
-                      boxShadow: [
-                        BoxShadow(
-                          color: accent.withAlpha(60),
-                          blurRadius: 30,
-                          offset: const Offset(0, 12),
-                          spreadRadius: -4,
-                        ),
-                      ],
-                    ),
-                    child: const Icon(
-                      Icons.fitness_center_rounded,
-                      size: 44,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 32),
-                // Animated text
-                TweenAnimationBuilder<double>(
-                  duration: const Duration(milliseconds: 600),
-                  tween: Tween(begin: 0.0, end: 1.0),
-                  curve: Curves.easeOut,
-                  builder: (context, value, child) {
-                    return Opacity(opacity: value, child: child);
-                  },
-                  child: Text(
-                    'P2F',
-                    style: AppTypography.displaySmall.copyWith(
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: -0.8,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 24),
-                // Loading indicator
-                SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2.5,
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                      AppColors.textTertiary,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+      backgroundColor: Colors.black,
+      body: Center(
+        child: TweenAnimationBuilder<double>(
+          duration: const Duration(milliseconds: 800),
+          tween: Tween(begin: 0.0, end: 1.0),
+          curve: Curves.easeOutBack,
+          builder: (context, value, child) {
+            return Transform.scale(scale: value, child: child);
+          },
+          child: const P2fLogo(size: 132, borderRadius: 28),
+        ),
       ),
     );
   }

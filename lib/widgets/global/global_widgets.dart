@@ -1,5 +1,9 @@
 export 'animations.dart';
 export 'app_gradient_background.dart';
+export 'monochrome_text.dart';
+export 'full_brand_logo.dart';
+export 'p2f_logo.dart';
 export 'zen_card.dart';
+export 'zen_components.dart';
 export 'zen_input_field.dart';
 export 'zen_primary_button.dart';

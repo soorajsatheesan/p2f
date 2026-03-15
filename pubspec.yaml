@@ -54,6 +54,9 @@ dependencies:
   sqflite: ^2.4.2
   path: ^1.9.1
 
+  # Typography — Space Grotesk + Inter
+  google_fonts: ^6.2.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -64,17 +67,44 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.3
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 
 # The following section is specific to Flutter packages.
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/images/p2f-launcher-icon.png"
+  adaptive_icon_background: "#000000"
+  adaptive_icon_foreground: "assets/images/p2f-launcher-foreground.png"
+  remove_alpha_ios: true
+  web:
+    generate: true
+    image_path: "assets/images/p2f-launcher-icon.png"
+    background_color: "#000000"
+  macos:
+    generate: true
+    image_path: "assets/images/p2f-launcher-icon.png"
+  windows:
+    generate: true
+    image_path: "assets/images/p2f-launcher-icon.png"
+
 flutter:
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+
+  assets:
+    - assets/images/login-background.jpg
+    - assets/images/p2f-logo.png
+    - assets/images/companions/Zeus.png
+    - assets/images/companions/Hades.png
+    - assets/images/companions/Athena.png
+    - assets/images/companions/Aphrodite.png
 
   # To add assets to your application, add an assets section, like this:
   # assets:

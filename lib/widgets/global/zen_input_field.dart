@@ -3,15 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:p2f/theme/theme.dart';
 
-/// A modern input field with floating labels, smooth animations,
-/// and Material 3 styling.
-///
-/// Features:
-/// - Animated floating label
-/// - Modern focus states with smooth transitions
-/// - Prefix/suffix icons with proper spacing
-/// - Error state with shake animation
-/// - Optional show/hide password toggle
+/// Monochrome input field — 20px radius, surface bg, border hierarchy.
 class ZenInputField extends StatefulWidget {
   const ZenInputField({
     required this.controller,
@@ -24,6 +16,7 @@ class ZenInputField extends StatefulWidget {
     this.prefixIcon,
     this.suffixIcon,
     this.errorText,
+    this.helperText,
     this.keyboardType,
     this.textInputAction,
     this.onSubmitted,
@@ -45,6 +38,7 @@ class ZenInputField extends StatefulWidget {
   final Widget? prefixIcon;
   final Widget? suffixIcon;
   final String? errorText;
+  final String? helperText;
   final TextInputType? keyboardType;
   final TextInputAction? textInputAction;
   final ValueChanged<String>? onSubmitted;
@@ -96,9 +90,7 @@ class _ZenInputFieldState extends State<ZenInputField>
     super.dispose();
   }
 
-  void _toggleObscure() {
-    setState(() => _isObscured = !_isObscured);
-  }
+  void _toggleObscure() => setState(() => _isObscured = !_isObscured);
 
   void _clearText() {
     widget.controller.clear();
@@ -107,8 +99,7 @@ class _ZenInputFieldState extends State<ZenInputField>
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+    final isFocused = _focusNode.hasFocus;
 
     Widget textField = TextField(
       controller: widget.controller,
@@ -124,16 +115,13 @@ class _ZenInputFieldState extends State<ZenInputField>
       maxLines: widget.obscureText ? 1 : widget.maxLines,
       minLines: widget.minLines,
       maxLength: widget.maxLength,
-      style: AppTypography.input.copyWith(
-        color: isDark ? AppColors.white : AppColors.textPrimary,
-      ),
-      cursorColor: isDark ? AppColors.white : AppColors.accentPrimary,
+      style: AppTypography.input,
+      cursorColor: AppColors.foreground,
       cursorWidth: 2,
       cursorRadius: const Radius.circular(1),
-      decoration: _buildDecoration(isDark),
+      decoration: _buildDecoration(isFocused),
     );
 
-    // Wrap with shake animation if there's an error
     if (widget.errorText != null) {
       textField = AnimatedBuilder(
         animation: _shakeController,
@@ -141,10 +129,8 @@ class _ZenInputFieldState extends State<ZenInputField>
           final shake = _shakeController.value < 1.0
               ? _shakeController
                     .drive(
-                      Tween<double>(
-                        begin: 0,
-                        end: 1,
-                      ).chain(CurveTween(curve: const ShakeCurve())),
+                      Tween<double>(begin: 0, end: 1)
+                          .chain(CurveTween(curve: const ShakeCurve())),
                     )
                     .value
               : 0.0;
@@ -168,124 +154,90 @@ class _ZenInputFieldState extends State<ZenInputField>
             padding: const EdgeInsets.only(top: 8, left: 4),
             child: Row(
               children: [
-                Icon(
-                  Icons.error_outline,
-                  size: 14,
-                  color: isDark ? AppColors.errorLight : AppColors.error,
-                ),
+                const Icon(Icons.error_outline, size: 14, color: AppColors.error),
                 const SizedBox(width: 6),
                 Expanded(
-                  child: Text(
-                    widget.errorText!,
-                    style: AppTypography.errorText.copyWith(
-                      color: isDark ? AppColors.errorLight : AppColors.error,
-                    ),
-                  ),
+                  child: Text(widget.errorText!, style: AppTypography.errorText),
                 ),
               ],
+            ),
+          )
+        else if (widget.helperText != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 8, left: 4),
+            child: Text(
+              widget.helperText!,
+              style: AppTypography.bodySmall.copyWith(color: AppColors.muted),
             ),
           ),
       ],
     );
   }
 
-  InputDecoration _buildDecoration(bool isDark) {
-    final hasText = widget.controller.text.isNotEmpty;
-    final isFocused = _focusNode.hasFocus;
-
+  InputDecoration _buildDecoration(bool isFocused) {
     return InputDecoration(
       hintText: widget.hintText,
       labelText: widget.labelText,
       prefixIcon: widget.prefixIcon != null
-          ? AnimatedContainer(
-              duration: AppTheme.fastDuration,
+          ? Padding(
               padding: const EdgeInsets.only(left: 16, right: 8),
               child: IconTheme(
                 data: IconThemeData(
-                  color: isFocused
-                      ? (isDark ? AppColors.white : AppColors.accentPrimary)
-                      : AppColors.textTertiary,
+                  color: isFocused ? AppColors.foreground : AppColors.subtle,
                   size: 22,
                 ),
                 child: widget.prefixIcon!,
               ),
             )
           : null,
-      suffixIcon: _buildSuffixIcon(isDark, isFocused),
+      suffixIcon: _buildSuffixIcon(isFocused),
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
-        borderSide: BorderSide(
-          color: isDark ? AppColors.borderDark : AppColors.border,
-          width: 1,
-        ),
+        borderRadius: BorderRadius.circular(20),
+        borderSide: const BorderSide(color: AppColors.border, width: 1),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
-        borderSide: BorderSide(
-          color: isDark ? AppColors.borderDark : AppColors.border,
-          width: 1,
-        ),
+        borderRadius: BorderRadius.circular(20),
+        borderSide: const BorderSide(color: AppColors.border, width: 1),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
-        borderSide: BorderSide(
-          color: isDark ? AppColors.white : AppColors.accentPrimary,
-          width: 2,
-        ),
+        borderRadius: BorderRadius.circular(20),
+        borderSide: const BorderSide(color: AppColors.borderStrong, width: 1),
       ),
       errorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
-        borderSide: BorderSide(
-          color: isDark ? AppColors.errorLight : AppColors.error,
-          width: 1.5,
-        ),
+        borderRadius: BorderRadius.circular(20),
+        borderSide: const BorderSide(color: AppColors.error, width: 1),
       ),
       focusedErrorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
-        borderSide: BorderSide(
-          color: isDark ? AppColors.errorLight : AppColors.error,
-          width: 2,
-        ),
+        borderRadius: BorderRadius.circular(20),
+        borderSide: const BorderSide(color: AppColors.error, width: 1),
       ),
       disabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
-        borderSide: BorderSide(
-          color: isDark ? AppColors.gray700 : AppColors.gray200,
-          width: 1,
-        ),
+        borderRadius: BorderRadius.circular(20),
+        borderSide: const BorderSide(color: AppColors.divider, width: 1),
       ),
       filled: true,
-      fillColor: !widget.enabled
-          ? (isDark ? AppColors.gray800 : AppColors.gray50)
-          : (isDark ? AppColors.gray800 : AppColors.gray50),
+      fillColor: AppColors.surface,
       contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
       hintStyle: AppTypography.inputHint,
       labelStyle: AppTypography.inputLabel,
       floatingLabelStyle: AppTypography.inputLabel.copyWith(
-        color: isFocused
-            ? (isDark ? AppColors.white : AppColors.accentPrimary)
-            : AppColors.textSecondary,
+        color: isFocused ? AppColors.foreground : AppColors.subtle,
         fontWeight: AppTypography.wSemibold,
       ),
       errorStyle: const TextStyle(height: 0, fontSize: 0),
     );
   }
 
-  Widget? _buildSuffixIcon(bool isDark, bool isFocused) {
+  Widget? _buildSuffixIcon(bool isFocused) {
     final suffixWidgets = <Widget>[];
 
-    // Clear button
     if (widget.showClearButton &&
         widget.controller.text.isNotEmpty &&
         !widget.obscureText) {
       suffixWidgets.add(
         IconButton(
           onPressed: _clearText,
-          icon: Icon(
-            Icons.close_rounded,
-            size: 18,
-            color: isDark ? AppColors.gray400 : AppColors.textTertiary,
-          ),
+          icon: const Icon(Icons.close_rounded, size: 18, color: AppColors.subtle),
           padding: EdgeInsets.zero,
           constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
           splashRadius: 16,
@@ -293,7 +245,6 @@ class _ZenInputFieldState extends State<ZenInputField>
       );
     }
 
-    // Password toggle
     if (widget.enablePasswordToggle && widget.obscureText) {
       suffixWidgets.add(
         IconButton(
@@ -306,7 +257,7 @@ class _ZenInputFieldState extends State<ZenInputField>
                   : Icons.visibility_outlined,
               key: ValueKey<bool>(_isObscured),
               size: 20,
-              color: isDark ? AppColors.gray400 : AppColors.textTertiary,
+              color: AppColors.subtle,
             ),
           ),
           padding: EdgeInsets.zero,
@@ -316,7 +267,6 @@ class _ZenInputFieldState extends State<ZenInputField>
       );
     }
 
-    // Custom suffix icon
     if (widget.suffixIcon != null) {
       suffixWidgets.add(
         Padding(
@@ -335,7 +285,6 @@ class _ZenInputFieldState extends State<ZenInputField>
   }
 }
 
-/// A shake curve for error animations
 class ShakeCurve extends Curve {
   const ShakeCurve();
 
@@ -347,7 +296,6 @@ class ShakeCurve extends Curve {
   }
 }
 
-/// A modern search input field
 class ZenSearchField extends StatelessWidget {
   const ZenSearchField({
     required this.controller,
@@ -366,8 +314,6 @@ class ZenSearchField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return ZenInputField(
       controller: controller,
       onChanged: onChanged,
@@ -379,7 +325,6 @@ class ZenSearchField extends StatelessWidget {
   }
 }
 
-/// A multiline text input with auto-expanding
 class ZenTextArea extends StatelessWidget {
   const ZenTextArea({
     required this.controller,

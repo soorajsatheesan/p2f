@@ -77,7 +77,7 @@ class MotivationQuoteNotifier extends StateNotifier<MotivationQuoteState> {
     try {
       final apiKey = await _secureStorage.getApiKey(StorageKeys.apiToken);
       if (apiKey == null || apiKey.trim().isEmpty) {
-        throw Exception('Gemini API key missing. Reconnect your key.');
+        throw Exception('OpenAI API key missing. Reconnect your key.');
       }
 
       final prompt = _buildPrompt(profile);
@@ -103,6 +103,10 @@ class MotivationQuoteNotifier extends StateNotifier<MotivationQuoteState> {
     }
   }
 
+  Future<void> reset() async {
+    state = const MotivationQuoteState();
+  }
+
   String _signatureFor(UserProfile profile) {
     return '${profile.name}|${profile.age}|${profile.weightKg}|${profile.heightCm}|${profile.healthGoal}';
   }
@@ -122,7 +126,7 @@ User profile:
 - Age: ${profile.age}
 - Weight (kg): ${profile.weightKg}
 - Height (cm): ${profile.heightCm}
-- Goal: ${profile.healthGoal}
+- Goals: ${profile.healthGoals.join(', ')}
 ''';
   }
 

@@ -1,11 +1,10 @@
-import 'dart:convert';
-
-import 'package:http/http.dart' as http;
+import 'package:p2f/services/openai_service.dart';
 
 class MotivationQuoteService {
-  static const String _baseUrl =
-      'https://generativelanguage.googleapis.com/v1beta/models';
-  static const String _model = 'gemini-3-flash-preview';
+  final OpenAiService _openAiService;
+
+  MotivationQuoteService({OpenAiService? openAiService})
+    : _openAiService = openAiService ?? OpenAiService();
 
   Future<String> generateQuote({
     required String apiKey,
@@ -25,50 +24,22 @@ class MotivationQuoteService {
     required String apiKey,
     required String prompt,
   }) async {
-    final url = Uri.parse('$_baseUrl/$_model:generateContent?key=$apiKey');
-
-    final body = {
-      'contents': [
-        {
-          'parts': [
-            {'text': prompt},
-          ],
-        },
-      ],
-      'generationConfig': {'temperature': 0.8, 'maxOutputTokens': 180},
-    };
-
-    final response = await http
-        .post(
-          url,
-          headers: {'Content-Type': 'application/json'},
-          body: jsonEncode(body),
-        )
-        .timeout(const Duration(seconds: 30));
-
-    if (response.statusCode != 200) {
+    try {
+      final text = await _openAiService.createTextResponse(
+        apiKey: apiKey,
+        messages: [
+          {
+            'role': 'user',
+            'content': prompt,
+          },
+        ],
+        temperature: 0.8,
+        maxCompletionTokens: 180,
+      );
+      return text.replaceAll('"', '').replaceAll(RegExp(r'\s+'), ' ').trim();
+    } catch (_) {
       throw Exception('Could not generate motivation right now.');
     }
-
-    final data = jsonDecode(response.body) as Map<String, dynamic>;
-    final candidates = data['candidates'] as List<dynamic>?;
-    if (candidates == null || candidates.isEmpty) {
-      throw Exception('No motivation generated.');
-    }
-
-    final content = candidates.first['content'] as Map<String, dynamic>?;
-    final parts = content?['parts'] as List<dynamic>?;
-    final text = parts
-        ?.map((part) => (part as Map<String, dynamic>)['text'] as String?)
-        .whereType<String>()
-        .join(' ')
-        .trim();
-
-    if (text == null || text.trim().isEmpty) {
-      throw Exception('Empty motivation response.');
-    }
-
-    return text.replaceAll('"', '').replaceAll(RegExp(r'\s+'), ' ').trim();
   }
 
   bool _looksIncomplete(String text) {

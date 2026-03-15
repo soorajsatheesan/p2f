@@ -4,14 +4,16 @@ class UserProfile {
     required this.dateOfBirth,
     required this.weightKg,
     required this.heightCm,
-    required this.healthGoal,
+    required this.healthGoals,
   });
 
   final String name;
   final DateTime dateOfBirth;
   final double weightKg;
   final double heightCm;
-  final String healthGoal;
+  final List<String> healthGoals;
+
+  String get healthGoal => healthGoals.join(', ');
 
   int get age {
     final now = DateTime.now();
@@ -30,14 +32,14 @@ class UserProfile {
     DateTime? dateOfBirth,
     double? weightKg,
     double? heightCm,
-    String? healthGoal,
+    List<String>? healthGoals,
   }) {
     return UserProfile(
       name: name ?? this.name,
       dateOfBirth: dateOfBirth ?? this.dateOfBirth,
       weightKg: weightKg ?? this.weightKg,
       heightCm: heightCm ?? this.heightCm,
-      healthGoal: healthGoal ?? this.healthGoal,
+      healthGoals: healthGoals ?? this.healthGoals,
     );
   }
 
@@ -47,17 +49,28 @@ class UserProfile {
       'dateOfBirth': dateOfBirth.toIso8601String(),
       'weightKg': weightKg,
       'heightCm': heightCm,
-      'healthGoal': healthGoal,
+      'healthGoals': healthGoals,
     };
   }
 
   factory UserProfile.fromJson(Map<String, dynamic> json) {
+    final rawGoals = json['healthGoals'] ?? json['healthGoal'];
+    final healthGoals = switch (rawGoals) {
+      List<dynamic> values => values.map((value) => value.toString()).toList(),
+      String value => value
+          .split(',')
+          .map((item) => item.trim())
+          .where((item) => item.isNotEmpty)
+          .toList(),
+      _ => const <String>[],
+    };
+
     return UserProfile(
       name: json['name'] as String,
       dateOfBirth: DateTime.parse(json['dateOfBirth'] as String),
       weightKg: (json['weightKg'] as num).toDouble(),
       heightCm: (json['heightCm'] as num).toDouble(),
-      healthGoal: json['healthGoal'] as String,
+      healthGoals: healthGoals,
     );
   }
 }
