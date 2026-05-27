@@ -1459,28 +1459,36 @@ class _DailyPushBlock extends StatelessWidget {
             ],
           )
         else if (quoteState.quote != null && quoteState.quote!.isNotEmpty)
-          IntrinsicHeight(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Container(
-                  width: 2,
-                  decoration: BoxDecoration(
-                    color: AppColors.borderStrong,
-                    borderRadius: BorderRadius.circular(1),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Text(
-                    quoteState.quote!,
-                    style: AppTypography.headlineSmall.copyWith(
-                      height: 1.42,
-                      fontWeight: FontWeight.w500,
+          Container(
+            padding: const EdgeInsets.fromLTRB(16, 18, 16, 18),
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: AppColors.border),
+            ),
+            child: IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Container(
+                    width: 2,
+                    decoration: BoxDecoration(
+                      color: AppColors.borderStrong,
+                      borderRadius: BorderRadius.circular(1),
                     ),
                   ),
-                ),
-              ],
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Text(
+                      quoteState.quote!,
+                      style: AppTypography.headlineSmall.copyWith(
+                        height: 1.42,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           )
         else

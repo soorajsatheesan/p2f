@@ -166,17 +166,25 @@ class _IntakeBlock extends ConsumerWidget {
         const SizedBox(height: 20),
 
         // ── Macro row ──
-        IntrinsicHeight(
-          child: Row(
-            children: [
-              _MacroItem(label: 'Protein', value: state.selectedDayProteinG),
-              _MacroSplit(),
-              _MacroItem(label: 'Carbs', value: state.selectedDayCarbsG),
-              _MacroSplit(),
-              _MacroItem(label: 'Fats', value: state.selectedDayFatsG),
-              _MacroSplit(),
-              _MacroItem(label: 'Fiber', value: state.selectedDayFiberG),
-            ],
+        Container(
+          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.border),
+          ),
+          child: IntrinsicHeight(
+            child: Row(
+              children: [
+                _MacroItem(label: 'Protein', value: state.selectedDayProteinG),
+                _MacroSplit(),
+                _MacroItem(label: 'Carbs', value: state.selectedDayCarbsG),
+                _MacroSplit(),
+                _MacroItem(label: 'Fats', value: state.selectedDayFatsG),
+                _MacroSplit(),
+                _MacroItem(label: 'Fiber', value: state.selectedDayFiberG),
+              ],
+            ),
           ),
         ),
       ],

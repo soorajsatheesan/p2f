@@ -220,8 +220,8 @@ class _InitialsAvatar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 60,
-      height: 60,
+      width: 68,
+      height: 68,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: AppColors.surfaceElevated,
@@ -231,7 +231,7 @@ class _InitialsAvatar extends StatelessWidget {
         child: Text(
           _initials(),
           style: AppTypography.titleMedium.copyWith(
-            fontSize: 20,
+            fontSize: 22,
             letterSpacing: 1,
           ),
         ),

@@ -285,68 +285,81 @@ class _ChatViewState extends ConsumerState<_ChatView> {
       mainAxisSize: MainAxisSize.max,
       children: [
         // ── Companion header ─────────────────────────────────────────────────
-        Row(
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: ColorFiltered(
-                colorFilter: const ColorFilter.matrix([
-                  0.2126, 0.7152, 0.0722, 0, 0,
-                  0.2126, 0.7152, 0.0722, 0, 0,
-                  0.2126, 0.7152, 0.0722, 0, 0,
-                  0,      0,      0,      1, 0,
-                ]),
-                child: Image.asset(
-                  companion.imagePath,
-                  width: 40,
-                  height: 40,
-                  fit: BoxFit.cover,
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    companion.name,
-                    style: AppTypography.titleSmall.copyWith(
-                      letterSpacing: -0.2,
-                    ),
-                  ),
-                  Text(
-                    companion.specialty.toUpperCase(),
-                    style: AppTypography.tag.copyWith(
-                      color: AppColors.faint,
-                      fontSize: 9,
-                      letterSpacing: 1.5,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            // Switch companion
-            GestureDetector(
-              onTap: () =>
-                  ref.read(aiCoachProvider.notifier).clearCompanion(),
-              behavior: HitTestBehavior.opaque,
-              child: Padding(
-                padding: const EdgeInsets.only(left: 12),
-                child: Text(
-                  'SWITCH',
-                  style: AppTypography.labelSmall.copyWith(
-                    color: AppColors.subtle,
-                    letterSpacing: 1.2,
+        Container(
+          padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.border),
+          ),
+          child: Row(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: ColorFiltered(
+                  colorFilter: const ColorFilter.matrix([
+                    0.2126, 0.7152, 0.0722, 0, 0,
+                    0.2126, 0.7152, 0.0722, 0, 0,
+                    0.2126, 0.7152, 0.0722, 0, 0,
+                    0,      0,      0,      1, 0,
+                  ]),
+                  child: Image.asset(
+                    companion.imagePath,
+                    width: 38,
+                    height: 38,
+                    fit: BoxFit.cover,
                   ),
                 ),
               ),
-            ),
-          ],
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      companion.name,
+                      style: AppTypography.titleSmall.copyWith(
+                        letterSpacing: -0.2,
+                      ),
+                    ),
+                    Text(
+                      companion.specialty.toUpperCase(),
+                      style: AppTypography.tag.copyWith(
+                        color: AppColors.faint,
+                        fontSize: 9,
+                        letterSpacing: 1.5,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              GestureDetector(
+                onTap: () =>
+                    ref.read(aiCoachProvider.notifier).clearCompanion(),
+                behavior: HitTestBehavior.opaque,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(100),
+                    border: Border.all(color: AppColors.border),
+                  ),
+                  child: Text(
+                    'SWITCH',
+                    style: AppTypography.labelSmall.copyWith(
+                      color: AppColors.subtle,
+                      letterSpacing: 1.2,
+                      fontSize: 10,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
-        const SizedBox(height: 20),
-        const Divider(height: 1, thickness: 1, color: AppColors.border),
-        const SizedBox(height: 12),
+        const SizedBox(height: 16),
 
         // ── Messages ─────────────────────────────────────────────────────────
         Expanded(
@@ -410,75 +423,83 @@ class _ChatViewState extends ConsumerState<_ChatView> {
         // Error
         if (state.errorMessage != null) ...[
           const SizedBox(height: 8),
-          Text(
-            state.errorMessage!,
-            style: AppTypography.bodySmall.copyWith(color: AppColors.error),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: const Color(0xFF1A0505),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: const Color(0x44FF4444)),
+            ),
+            child: Text(
+              state.errorMessage!,
+              style: AppTypography.bodySmall.copyWith(color: AppColors.error),
+            ),
           ),
         ],
 
-        const SizedBox(height: 16),
-        const Divider(height: 1, thickness: 1, color: AppColors.border),
         const SizedBox(height: 14),
 
         // ── Input ─────────────────────────────────────────────────────────────
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Expanded(
-              child: TextField(
-                controller: _inputCtrl,
-                minLines: 1,
-                maxLines: 4,
-                textInputAction: TextInputAction.newline,
-                style: AppTypography.input,
-                cursorColor: AppColors.foreground,
-                cursorWidth: 1.5,
-                enabled: !state.isSending,
-                decoration: InputDecoration(
-                  hintText: 'Ask ${companion.name}…',
-                  hintStyle: AppTypography.inputHint,
-                  border: const UnderlineInputBorder(
-                    borderSide: BorderSide(color: AppColors.border),
+        Container(
+          padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: AppColors.borderHover),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _inputCtrl,
+                  minLines: 1,
+                  maxLines: 4,
+                  textInputAction: TextInputAction.newline,
+                  style: AppTypography.input,
+                  cursorColor: AppColors.foreground,
+                  cursorWidth: 1.5,
+                  enabled: !state.isSending,
+                  decoration: InputDecoration(
+                    hintText: 'Ask ${companion.name}…',
+                    hintStyle: AppTypography.inputHint,
+                    border: InputBorder.none,
+                    enabledBorder: InputBorder.none,
+                    focusedBorder: InputBorder.none,
+                    disabledBorder: InputBorder.none,
+                    filled: false,
+                    contentPadding: const EdgeInsets.symmetric(vertical: 6),
+                    isDense: true,
                   ),
-                  enabledBorder: const UnderlineInputBorder(
-                    borderSide: BorderSide(color: AppColors.border),
-                  ),
-                  focusedBorder: const UnderlineInputBorder(
-                    borderSide: BorderSide(color: AppColors.foreground),
-                  ),
-                  disabledBorder: const UnderlineInputBorder(
-                    borderSide: BorderSide(color: AppColors.divider),
-                  ),
-                  filled: false,
-                  contentPadding: const EdgeInsets.only(bottom: 10),
-                  isDense: true,
+                  onSubmitted: (_) => _send(),
                 ),
-                onSubmitted: (_) => _send(),
               ),
-            ),
-            const SizedBox(width: 14),
-            // Send button
-            GestureDetector(
-              onTap: state.isSending ? null : _send,
-              child: Container(
-                width: 38,
-                height: 38,
-                decoration: BoxDecoration(
-                  color: state.isSending
-                      ? AppColors.surfaceElevated
-                      : AppColors.foreground,
-                  shape: BoxShape.circle,
+              const SizedBox(width: 8),
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 150),
+                child: GestureDetector(
+                  onTap: state.isSending ? null : _send,
+                  child: Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: state.isSending
+                          ? AppColors.surfaceElevated
+                          : AppColors.foreground,
+                      shape: BoxShape.circle,
+                    ),
+                    child: state.isSending
+                        ? const SizedBox.shrink()
+                        : const Icon(
+                            Icons.arrow_upward_rounded,
+                            color: AppColors.background,
+                            size: 18,
+                          ),
+                  ),
                 ),
-                child: state.isSending
-                    ? const SizedBox.shrink()
-                    : const Icon(
-                        Icons.arrow_upward_rounded,
-                        color: AppColors.background,
-                        size: 18,
-                      ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
         const SizedBox(height: 8),
       ],
@@ -510,20 +531,20 @@ class _Bubble extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.only(
-              topLeft: const Radius.circular(16),
-              topRight: const Radius.circular(16),
-              bottomLeft: Radius.circular(isUser ? 16 : 4),
-              bottomRight: Radius.circular(isUser ? 4 : 16),
+              topLeft: const Radius.circular(18),
+              topRight: const Radius.circular(18),
+              bottomLeft: Radius.circular(isUser ? 18 : 4),
+              bottomRight: Radius.circular(isUser ? 4 : 18),
             ),
-            color: isUser ? AppColors.surfaceElevated : AppColors.surface,
-            border: Border.all(
-              color: isUser ? AppColors.borderHover : AppColors.border,
-            ),
+            color: isUser ? AppColors.foreground : AppColors.surface,
+            border: isUser
+                ? null
+                : Border.all(color: AppColors.border),
           ),
           child: Text(
             displayText,
             style: AppTypography.bodyMedium.copyWith(
-              color: AppColors.foreground,
+              color: isUser ? AppColors.background : AppColors.foreground,
               height: 1.55,
             ),
           ),

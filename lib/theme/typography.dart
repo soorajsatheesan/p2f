@@ -7,15 +7,15 @@ import 'colors.dart';
 class AppTypography {
   AppTypography._();
 
-  static const String bodyFont = 'Inter';
+  static const String bodyFont = 'DM Sans';
   static const List<String> bodyFallback = <String>[
-    'Inter',
+    'DM Sans',
     'Roboto',
     'Helvetica',
     'Arial',
     'sans-serif',
   ];
-  static const String headingFont = 'Space Grotesk';
+  static const String headingFont = 'DM Sans';
 
   // Font weights
   static const FontWeight wLight = FontWeight.w300;
@@ -33,7 +33,7 @@ class AppTypography {
     double height = 1.1,
     Color color = AppColors.foreground,
   }) {
-    return GoogleFonts.spaceGrotesk(
+    return GoogleFonts.dmSans(
       fontSize: fontSize,
       fontWeight: fontWeight,
       letterSpacing: letterSpacing,
@@ -49,7 +49,7 @@ class AppTypography {
     double height = 1.7,
     Color color = AppColors.muted,
   }) {
-    return GoogleFonts.inter(
+    return GoogleFonts.dmSans(
       fontSize: fontSize,
       fontWeight: fontWeight,
       letterSpacing: letterSpacing,
