@@ -6,19 +6,29 @@ class SecureStorageService {
     iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock),
   );
 
+  // In-memory cache to avoid repeated platform keystore round-trips.
+  final Map<String, String> _cache = {};
+
   Future<void> saveApiKey(String key, String value) async {
+    _cache[key] = value;
     await _storage.write(key: key, value: value);
   }
 
   Future<String?> getApiKey(String key) async {
-    return await _storage.read(key: key);
+    final cached = _cache[key];
+    if (cached != null) return cached;
+    final value = await _storage.read(key: key);
+    if (value != null) _cache[key] = value;
+    return value;
   }
 
   Future<void> deleteApiKey(String key) async {
+    _cache.remove(key);
     await _storage.delete(key: key);
   }
 
   Future<void> deleteAllApiKeys() async {
+    _cache.clear();
     await _storage.deleteAll();
   }
 

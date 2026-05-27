@@ -6,12 +6,38 @@ class OpenAiService {
   static const String baseUrl = 'https://api.openai.com/v1';
   static const List<String> textModels = ['gpt-5-mini', 'gpt-4.1-mini'];
 
+  // Coalesces concurrent identical text requests into a single in-flight call.
+  final Map<String, Future<String>> _inflight = {};
+
   Future<String> createTextResponse({
     required String apiKey,
     required List<Map<String, Object?>> messages,
     double temperature = 0.7,
     int maxCompletionTokens = 300,
     Map<String, Object?>? responseFormat,
+  }) {
+    final key = _textRequestKey(messages, maxCompletionTokens);
+    final existing = _inflight[key];
+    if (existing != null) return existing;
+
+    final future = _executeTextRequest(
+      apiKey: apiKey,
+      messages: messages,
+      temperature: temperature,
+      maxCompletionTokens: maxCompletionTokens,
+      responseFormat: responseFormat,
+    ).whenComplete(() => _inflight.remove(key));
+
+    _inflight[key] = future;
+    return future;
+  }
+
+  Future<String> _executeTextRequest({
+    required String apiKey,
+    required List<Map<String, Object?>> messages,
+    required double temperature,
+    required int maxCompletionTokens,
+    required Map<String, Object?>? responseFormat,
   }) async {
     Exception? lastError;
 
@@ -56,6 +82,11 @@ class OpenAiService {
     }
 
     throw lastError ?? Exception('OpenAI request failed.');
+  }
+
+  String _textRequestKey(List<Map<String, Object?>> messages, int maxTokens) {
+    final content = messages.map((m) => '${m['role']}:${m['content']}').join('\n---\n');
+    return '$content|$maxTokens';
   }
 
   Future<String> analyzeImageAsJson({

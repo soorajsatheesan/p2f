@@ -2,16 +2,22 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:p2f/models/user_profile.dart';
 import 'package:p2f/providers/login_provider.dart';
 import 'package:p2f/services/motivation_quote_service.dart';
+import 'package:p2f/services/quote_cache_service.dart';
 import 'package:p2f/services/secure_storage_service.dart';
 
 final motivationQuoteServiceProvider = Provider<MotivationQuoteService>((ref) {
   return MotivationQuoteService();
 });
 
+final quoteCacheServiceProvider = Provider<QuoteCacheService>((ref) {
+  return QuoteCacheService();
+});
+
 final motivationQuoteProvider =
     StateNotifierProvider<MotivationQuoteNotifier, MotivationQuoteState>((ref) {
       return MotivationQuoteNotifier(
         quoteService: ref.read(motivationQuoteServiceProvider),
+        quoteCache: ref.read(quoteCacheServiceProvider),
         secureStorage: ref.read(secureStorageProvider),
       );
     });
@@ -53,57 +59,90 @@ const Object _sentinel = Object();
 class MotivationQuoteNotifier extends StateNotifier<MotivationQuoteState> {
   MotivationQuoteNotifier({
     required MotivationQuoteService quoteService,
+    required QuoteCacheService quoteCache,
     required SecureStorageService secureStorage,
   }) : _quoteService = quoteService,
+       _quoteCache = quoteCache,
        _secureStorage = secureStorage,
        super(const MotivationQuoteState());
 
   final MotivationQuoteService _quoteService;
+  final QuoteCacheService _quoteCache;
   final SecureStorageService _secureStorage;
+
+  // Guards against concurrent fetch calls during async cache checks.
+  bool _isFetching = false;
 
   Future<void> fetchForProfile({
     required UserProfile profile,
     bool force = false,
   }) async {
-    if (state.isLoading) return;
+    if (_isFetching) return;
 
     final signature = _signatureFor(profile);
+
+    // Layer 1: in-memory (Riverpod state) — instant, no I/O.
     final alreadyLoaded =
         state.quote != null && state.profileSignature == signature;
     if (!force && alreadyLoaded) return;
 
-    state = state.copyWith(isLoading: true, errorMessage: null);
-
+    _isFetching = true;
     try {
-      final apiKey = await _secureStorage.getApiKey(StorageKeys.apiToken);
-      if (apiKey == null || apiKey.trim().isEmpty) {
-        throw Exception('OpenAI API key missing. Reconnect your key.');
+      // Layer 2: persistent cache (SharedPreferences) — skip API if still fresh.
+      if (!force) {
+        final cached = await _quoteCache.load();
+        if (cached != null &&
+            cached.profileSignature == signature &&
+            !cached.isExpired) {
+          state = state.copyWith(
+            quote: cached.quote,
+            profileSignature: signature,
+            isLoading: false,
+            errorMessage: null,
+          );
+          return;
+        }
       }
 
-      final prompt = _buildPrompt(profile);
-      final quote = await _quoteService.generateQuote(
-        apiKey: apiKey,
-        prompt: prompt,
-      );
+      // Layer 3: network — fetch from OpenAI and persist the result.
+      state = state.copyWith(isLoading: true, errorMessage: null);
 
-      state = state.copyWith(
-        quote: quote,
-        isLoading: false,
-        profileSignature: signature,
-        errorMessage: null,
-      );
-    } catch (e) {
-      final fallbackQuote = _buildFallbackQuote(profile);
-      state = state.copyWith(
-        quote: fallbackQuote,
-        isLoading: false,
-        profileSignature: signature,
-        errorMessage: null,
-      );
+      try {
+        final apiKey = await _secureStorage.getApiKey(StorageKeys.apiToken);
+        if (apiKey == null || apiKey.trim().isEmpty) {
+          throw Exception('OpenAI API key missing. Reconnect your key.');
+        }
+
+        final prompt = _buildPrompt(profile);
+        final quote = await _quoteService.generateQuote(
+          apiKey: apiKey,
+          prompt: prompt,
+        );
+
+        await _quoteCache.save(quote: quote, profileSignature: signature);
+
+        state = state.copyWith(
+          quote: quote,
+          isLoading: false,
+          profileSignature: signature,
+          errorMessage: null,
+        );
+      } catch (e) {
+        final fallbackQuote = _buildFallbackQuote(profile);
+        state = state.copyWith(
+          quote: fallbackQuote,
+          isLoading: false,
+          profileSignature: signature,
+          errorMessage: null,
+        );
+      }
+    } finally {
+      _isFetching = false;
     }
   }
 
   Future<void> reset() async {
+    await _quoteCache.clear();
     state = const MotivationQuoteState();
   }
 
